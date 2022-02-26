@@ -2,5 +2,15 @@
     {
         "title": "THIS IS MY FIRST NOTE",
         "text": "This is the description"
+    },
+    {
+        "title": "First one",
+        "text": "the best one",
+        "id": "1366c821-58dc-4d0e-9caa-c8ada97cd2f2"
+    },
+    {
+        "title": "First one",
+        "text": "the best one",
+        "id": "b6bbfcfd-1684-4c15-b990-69f3a19cce6e"
     }
 ]

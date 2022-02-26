@@ -1,9 +1,11 @@
-const express = require ('express')
-const notesArray = require ('./db/notesArray.json')
+const fs = require ('fs');
+const express = require ('express');
+const notesArray = require ('./db/notesArray.json');
 const { v4: uuidv4 } = require('uuid');
 const app = express();
-const PORT = 4000;
-const path = require ('path')
+const PORT = process.env.PORT || 3001;
+const path = require ('path');
+const util = require ('util');
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -18,9 +20,8 @@ app.get('/notes', (req, res) =>
 );
 
 app.get('/api/notes', (req, res) => {
-    
     console.info(`${req.method} request received to get notes`)
-    return res.json(notesArray);
+    readFromFile('./db/notesArray.json').then((data) => res.json(JSON.parse(data)))
 });
 
 app.get('*', (req, res) => 
@@ -34,35 +35,60 @@ app.post('/api/notes', (req, res) => {
         
         //Preparing a response object to send back to client
     
-        let response;
     
-        const {title, text} = res.body;
-    
-        if (req.body && req.body.title) {
-            const newNotes = {
-                title,
-                text,
-                id: uuidv4(),
-            };
+    let response;
 
-            const noteString = JSON.stringify(newNotes);
+    const {title, text} = req.body;
+        
+    if (req.body && req.body.title) {
+        const newNotes = {
+            title,
+            text,
+            id: uuidv4(),
+        };
+       
+        readAndAppend(newNotes, './db/notesArray.json');
+        res.status(201).json(`A New Note for ${req.body.title} has been created`);
+        }else{
+            res.status(500).json('Error in adding new note');
+        }
             
             response = {
                 status: 'success',
                 data: req.body,
             };
-            notesArray.push(req.body);
-            console.info(uuidv4());
-            res.json(`A New Notes for ${response.data.title} has been created`);
             
-        }else {
-            res.json('New Note was not added');
-        }
-    
+            console.log(response);
+            // res.status(201).json(response);
+            // noteString.push('./db/notesArray.json');
+            console.info(uuidv4());
         console.log(req.body);
         
     });
-// app.post('/api/notes', (req, res) => {
+
+    const readFromFile = util.promisify(fs.readFile);
+
+    // const noteString = JSON.stringify(newNotes);
+
+    const writeToFile = (destination, content) => {
+        fs.writeFile(destination, JSON.stringify(content, null, 4), (err) =>
+            err ? console.err(err) : console.info(`\nThe Data has been written to ${destination}`)
+        );
+    }
+
+    const readAndAppend = (content, file) => {
+        fs.readFile(file, 'utf-8', (err, data) =>{
+            if (err){
+                console.err (err);
+            } else {
+                const parsedData = JSON.parse(data);
+                parsedData.push(content);
+                writeToFile(file, parsedData);
+            }
+        });
+    };
+
+    // app.post('/api/notes', (req, res) => {
 //     console.info(`${req.method} request received to add new notes`)
     
 //     //Preparing a response object to send back to client
