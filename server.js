@@ -6,6 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const path = require ('path');
 const util = require ('util');
+const res = require('express/lib/response');
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -59,12 +60,27 @@ app.post('/api/notes', (req, res) => {
             };
             
             console.log(response);
-            // res.status(201).json(response);
-            // noteString.push('./db/notesArray.json');
+          
             console.info(uuidv4());
         console.log(req.body);
-        
-    });
+});
+
+    
+app.delete('/api/notes/:id', (req, res) => {
+	console.info('Deleting...');
+	const noteId = req.params.id;
+	readFromFile('./db/notesArray.json')
+		.then((data) => JSON.parse(data))
+		.then((json) => {
+			// Make a new array of all notes except the one with the ID provided in the URL
+			const result = json.filter((notesjs) => notesjs.id !== noteId);
+			// Save that array to the filesystem
+			writeToFile('./db/notesArray.json', result);
+			// Respond to the DELETE request
+			res.json(`Item ${noteId} has been deleted`);
+		});
+});
+
 
     const readFromFile = util.promisify(fs.readFile);
 
@@ -88,29 +104,5 @@ app.post('/api/notes', (req, res) => {
         });
     };
 
-    // app.post('/api/notes', (req, res) => {
-//     console.info(`${req.method} request received to add new notes`)
-    
-//     //Preparing a response object to send back to client
 
-//     let response;
-
-
-//     if (req.body && req.body.title){
-//         response = {
-//             status: 'success',
-//             data: req.body,
-//         };
-//         notesArray.push(req.body);
-//         console.info(uuidv4());
-//         res.json(`A New Notes for ${response.data.title} has been created`);
-        
-//     }else {
-//         res.json('New Note was not added');
-//     }
-
-//     console.log(req.body);
-    
-// });
-
-app.listen (PORT, () => console.log(`Listening successfully on port (${PORT})`));
+app.listen (PORT, () => console.log(`Listening Successfully On Port: (${PORT})`));
